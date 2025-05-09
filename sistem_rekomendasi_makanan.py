@@ -7,6 +7,8 @@ Original file is located at
     https://colab.research.google.com/drive/1XuoUkjsIwJ-tna1tA-ErO4TPgyiShH4q
 
 ### Import Library for Dependency
+
+Dalam tahap ini melakukan import library untuk keperluan development model
 """
 
 # Commented out IPython magic to ensure Python compatibility.
@@ -27,7 +29,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 """### Exploratory Dataset
 
+Melakukan eksplorasi data sesuai dengan pemahaman dan tujuan bisnis
+
 #### Data Loading
+
+mengambil dataset dari kaggle dan memasukkannya ke folder dataset
 """
 
 source = kagglehub.dataset_download("uom190346a/food-ingredients-and-allergens")
@@ -40,23 +46,37 @@ shutil.copytree(source, destination_path)
 
 print(f"Dataset downloaded and moved to {destination_path}")
 
-"""#### Data Reading"""
+"""#### Data Reading
+
+melihat 5 data dari dataset untuk dianalisa
+"""
 
 df = pd.read_csv("/content/dataset/food_ingredients_and_allergens.csv")
 df.head(5)
 
+"""Melihat informasi dataset, seperti jumlah kolom, baris, dan tipe data"""
+
 # Return information of dataframe
 df.info()
+
+"""Melakukan pengecekan dataset, apakah memiliki nilai null"""
 
 # Check the null column
 df.isnull().sum()
 
+"""Mengecek dataset apakah memiliki data yang terduplikasi"""
+
 # Check the duplicated column
 df.duplicated().sum()
 
+"""Melihat deskripsi dataset, seperti nilai yang sering muncul"""
+
 df.describe(include="all")
 
-"""#### Data Cleaning"""
+"""#### Data Cleaning
+
+Pada tahap ini fokus utamanya adalah untuk membersihkan dataset dari missing value, dan duplicated value
+"""
 
 # Fill the missing value using mode because dtype is object
 for col in df.columns:
@@ -74,7 +94,10 @@ df.duplicated().sum()
 # Check the total data
 df.info()
 
-"""#### Exploratory Data Analysis (EDA)"""
+"""#### Exploratory Data Analysis (EDA)
+
+Tahap ini fokusnya adalah untuk melihat secara visual data-data yang ingin kita analisa sesuai dengan tujuan bisnis
+"""
 
 # Get allergens series
 allergen_series = df["Allergens"].apply(lambda x: [i.strip() for i in x.split(",")])
@@ -103,7 +126,10 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
 
-"""### Modelling using Content Based Filtering"""
+"""### Data Preparation
+
+Pada tahap ini fokus utamanya untuk mempersiapkan data agar lebih siap untuk tahap modelling, selain itu pada tahap ini juga melakukan pembuatan dataframe cosine_sim (cosine similarity) untuk menyimpan kesamaan setiap data yang akan digunakan di tahap modelling
+"""
 
 # Inisialization using TfidfVectorizer
 tf = TfidfVectorizer()
@@ -141,6 +167,12 @@ print('Shape:', cosine_sim_df.shape)
 # Return similarity matrix
 cosine_sim_df.sample(10, axis=1).sample(10, axis=0)
 
+"""### Modelling using Content Based Filtering
+
+Pada tahap ini fokusnya adalah untuk membuat model AI untuk bisa memberikan rekomendasi makanan yang harus dihindari selain makanan yang pernah dimakan sesuai dengan kandungan Allergens
+"""
+
+# Create function model
 def food_avoids(food_product, similarity_data=cosine_sim_df, items=df[['Food Product', 'Allergens']], k=10):
     """
     Avoids food products based on similarity of allergens.
@@ -186,3 +218,60 @@ df[df['Food Product'].eq(food_product)].head(1)
 food_product = 'Mushroom Risotto'
 food_avoids = food_avoids(food_product)
 food_avoids
+
+"""### Evaluation
+
+Melakukan evaluasi model dengan Precision@K, untuk mengukur proporsi item yang relevan di antara top-K rekomendasi
+"""
+
+def evaluate_recommendations(recommendations_df, ground_truth_df, k=10):
+    """
+    Evaluates the quality of food avoidance recommendations.
+
+    Args:
+        recommendations_df (pd.DataFrame): DataFrame of recommended avoids.  Must have columns 'Food Product' and 'Allergens'.
+        ground_truth_df (pd.DataFrame): DataFrame of actual avoids (ground truth). Must have columns 'Food Product' and 'Allergens'.
+        k (int): The number of recommendations to consider.
+
+    Returns:
+        dict: A dictionary containing evaluation metrics (e.g., precision@k, recall@k).
+    """
+
+    if not {'Food Product', 'Allergens'}.issubset(recommendations_df.columns):
+        raise ValueError("recommendations_df must contain 'Food Product' and 'Allergens' columns.")
+
+    if not {'Food Product', 'Allergens'}.issubset(ground_truth_df.columns):
+        raise ValueError("ground_truth_df must contain 'Food Product' and 'Allergens' columns.")
+
+    precision_at_k = 0  # Initialize precision
+    total_relevant = 0
+
+    # Iterate through recommendations
+    for index, row in recommendations_df.iterrows():
+        recommended_food = row['Food Product']
+        recommended_allergens = row['Allergens']  # Get allergens for the recommended item
+
+        # This should retrieve the true avoidances for a given food.
+        true_avoidances = ground_truth_df[ground_truth_df["Food Product"] == recommended_food]["Allergens"].tolist()
+
+        if true_avoidances:
+           true_avoidances = true_avoidances[0]
+           total_relevant += 1  # Increment count of actual avoids
+           if recommended_allergens in true_avoidances:
+              precision_at_k += 1
+
+    # Calculate precision@k
+    if total_relevant > 0:
+        precision_at_k /= min(total_relevant, k)  # Divide by k or number of relevant items if less than k
+
+    metrics = {'precision@k': precision_at_k}
+    return metrics
+
+ground_truth_data = {'Food Product': ['Chicken Shawarma', 'Chicken Shawarma', 'Chicken Fajitas', 'Mango Salsa', 'Mango Salsa', 'Lentil Curry', 'Green Smoothie', 'Sausage Pizza', 'Beef and Broccoli', '	Beef Burritos'], 'Allergens': ['Dairy' for _ in range(0, 10)]}
+ground_truth_df = pd.DataFrame(ground_truth_data)
+
+# Evaluate the recommendations
+evaluation_results = evaluate_recommendations(food_avoids, ground_truth_df)
+evaluation_results
+
+"""Evaluasi menunjukkan hasil dari model sistem rekomendasi makanan yang harus dihindari adalah 10/10 = 1, yang artinya model sudah bekerja dengan baik"""

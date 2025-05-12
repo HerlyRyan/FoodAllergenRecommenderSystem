@@ -33,13 +33,15 @@ Untuk menjawab pertanyaan di atas, maka akan dijabarkan sebagai berikut:
 
 ---
 
-## Deskripsi Dataset
+## Data Understanding
+
+### Sumber Dataset
 
 Berikut merupakan sumber dari dataset yang saya pakai: [Food Allergens]('https://www.kaggle.com/datasets/uom190346a/food-ingredients-and-allergens/data')
 
-### Deskripsi Variabel
+### Deskripsi Dataset
 
-Dataset memiliki kolom sebagai berikut:
+Dataset ini berjumlah **400 baris** dan memiliki **7 kolom** yang terdiri:
 
 | Nama Kolom      | Deskripsi                                                                                | Tipe Data     |
 | --------------- | ---------------------------------------------------------------------------------------- | ------------- |
@@ -55,9 +57,9 @@ Produk makanan beragam, mulai dari kue, sup, salad, produk susu, daging, hingga 
 
 ### Exploratory Data Analysis - Univariate Analysis
 
-- Terdapat missing value pada beberepa kolom
-- Terdapat data duplicated berjumlah 90 data
-- Dari hasil analisa data alergen, alergen yang palin banyak adalah 'Dairy' yang berjumlah: 262
+- Terdapat missing value pada kolom: Sweetener, Fat/Oil, Seasoning, Allergens, dan Prediction
+- Terdapat data duplicated yang berjumlah 90 data
+- Dari hasil analisa data alergen, alergen yang paling banyak adalah 'Dairy' yang berjumlah: 262 data
 
 ---
 
@@ -71,13 +73,13 @@ Berikut merupakan tahapan-tahapan dalam melakukan data preparation:
   Proses ini dilakukan dengan menggunakan fungsi [_drop_duplicates()_](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.drop_duplicates.html) agar tidak ada data yang memiliki nilai sama untuk mencegah kekeliruan.
 - _Melakukan Vektorisasi dengan TF-IDF_  
   Pada tahap ini data yang telah disiapkan dikonversi menjadi bentuk vektor menggunakan fungsi [tfidfvectorizer()](https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html) dari library sklearn untuk mengidentifikasi korelasi antara judul film dengan kategori genrenya.
-- _Mengukur tingkat kesamaan dengan [Cosine Similarity](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html)_  
-  Setelah data dikonversi menjadi bentuk vektor, selanjutnya ukur tingkat kesamaan antara dua vektor dan menentukan apakah kedua vektor tersebut menunjuk ke arah yang sama. Semakin kecil sudut cosinus, semakin besar nilai cosine similarity.
 
 ## Modeling
 
 Setelah data selesai disiapkan, proses selanjutnya adalah membuat model adapun tahap-tahapnya diantaranya sebagai berikut:
 
+- _Mengukur tingkat kesamaan dengan [Cosine Similarity](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html)_  
+  Setelah data dikonversi menjadi bentuk vektor, selanjutnya ukur tingkat kesamaan antara dua vektor dan menentukan apakah kedua vektor tersebut menunjuk ke arah yang sama. Semakin kecil sudut cosinus, semakin besar nilai cosine similarity.
 - _Membuat Fungsi food_avoids()_
   Tahap terakhir dari proses modeling adalah membuat fungsi untuk mendapatkan hasil _top-N avoids_, kali ini fungsinya dinamakan _food_avoids()_. Cara kerja dari fungsi ini yaitu menggunakan fungsi [argpartition](https://numpy.org/doc/stable/reference/generated/numpy.argpartition.html) untuk mengambil sejumlah nilai k tertinggi dari similarity data (dalam kasus ini: dataframe **cosine_sim_df**). Kemudian mengambil data dari bobot (tingkat kesamaan) tertinggi ke terendah. Data ini lalu dimasukkan ke dalam variabel closest. Berikutnya menghapus food*product yang dicari menggunakan fungsi [drop()](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.drop.html) agar tidak muncul dalam daftar rekomendasi.
   Penjelasan parameter dari fungsi \_food_avoids()* adalah sebagai berikut:

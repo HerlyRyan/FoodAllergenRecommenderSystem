@@ -156,6 +156,8 @@ pd.DataFrame(
     index=df['Food Product']
 ).sample(10, axis=1).sample(10, axis=0)
 
+"""### Modelling using Content Based Filtering"""
+
 # Calculate cosine similarity on matrix tf-idf
 cosine_sim = cosine_similarity(tfidf_matrix)
 cosine_sim
@@ -167,10 +169,7 @@ print('Shape:', cosine_sim_df.shape)
 # Return similarity matrix
 cosine_sim_df.sample(10, axis=1).sample(10, axis=0)
 
-"""### Modelling using Content Based Filtering
-
-Pada tahap ini fokusnya adalah untuk membuat model AI untuk bisa memberikan rekomendasi makanan yang harus dihindari selain makanan yang pernah dimakan sesuai dengan kandungan Allergens
-"""
+"""Pada tahap ini fokusnya adalah untuk membuat model AI untuk bisa memberikan rekomendasi makanan yang harus dihindari selain makanan yang pernah dimakan sesuai dengan kandungan Allergens"""
 
 # Create function model
 def food_avoids(food_product, similarity_data=cosine_sim_df, items=df[['Food Product', 'Allergens']], k=10):

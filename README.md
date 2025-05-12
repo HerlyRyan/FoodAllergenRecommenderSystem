@@ -37,7 +37,7 @@ Untuk menjawab pertanyaan di atas, maka akan dijabarkan sebagai berikut:
 
 ### Sumber Dataset
 
-Berikut merupakan sumber dari dataset yang saya pakai: [Food Allergens]('https://www.kaggle.com/datasets/uom190346a/food-ingredients-and-allergens/data')
+Berikut merupakan sumber dari dataset yang saya pakai: [Food Allergens](https://www.kaggle.com/datasets/uom190346a/food-ingredients-and-allergens/data)
 
 ### Deskripsi Dataset
 
